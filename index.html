@@ -1,142 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Web3 Task Tracker</title>
 
   <style>
     body {
       font-family: Arial;
-      text-align: center;
-      background: #0f172a;
+      background: #020617;
       color: white;
+      text-align: center;
+    }
+
+    h1 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      color: #38bdf8;
+      text-shadow: 0 0 10px #38bdf8;
     }
 
     input {
       padding: 10px;
-      border-radius: 5px;
-      border: none;
+      width: 60%;
     }
 
     button {
       padding: 10px;
-      border-radius: 5px;
+      background: #38bdf8;
       border: none;
       cursor: pointer;
-      margin: 5px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 20px;
+      box-shadow: 0 0 10px #38bdf8;
     }
 
     li {
-      margin: 10px auto;
-      padding: 12px;
-      width: 300px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    #walletAddress {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #94a3b8;
-    }
-
-    /* 🔥 LOADER CSS */
-    #loader {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: black;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      font-size: 20px;
+      margin: 10px;
+      list-style: none;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🔥 LOADER -->
-<div id="loader">Loading Web3 App...</div>
+  <h1>
+    <img src="logo.png" width="40">
+    Web3 Task Tracker
+  </h1>
 
-<h1>🚀 Web3 Task Tracker</h1>
+  <h3>💰 Coins: <span id="coins">0</span></h3>
 
-<button onclick="connectWallet()">🦊 Connect MetaMask</button>
-<p id="walletAddress">Not connected</p>
+  <input type="text" id="taskInput" placeholder="Enter task">
+  <button onclick="addTask()">Add</button>
 
-<br><br>
+  <ul id="taskList"></ul>
 
-<input id="taskInput" placeholder="Enter task..." />
-<button onclick="addTask()">Add</button>
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    let coins = localStorage.getItem("coins") || 0;
 
-<ul id="taskList"></ul>
+    document.getElementById("coins").innerText = coins;
 
-<script>
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    function renderTasks() {
+      let list = document.getElementById("taskList");
+      list.innerHTML = "";
 
-  function renderTasks() {
-    let list = document.getElementById("taskList");
-    list.innerHTML = "";
-
-    tasks.forEach((task, index) => {
-      let li = document.createElement("li");
-
-      li.innerHTML = `
-        <span>${task}</span>
-        <div>
+      tasks.forEach((task, index) => {
+        let li = document.createElement("li");
+        li.innerHTML = `
+          ${task}
           <button onclick="deleteTask(${index})">❌</button>
-        </div>
-      `;
-
-      list.appendChild(li);
-    });
-
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }
-
-  function addTask() {
-    let input = document.getElementById("taskInput");
-    if (input.value === "") return;
-
-    tasks.push(input.value);
-    input.value = "";
-    renderTasks();
-  }
-
-  function deleteTask(index) {
-    tasks.splice(index, 1);
-    renderTasks();
-  }
-
-  async function connectWallet() {
-    if (window.ethereum) {
-      let accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
+        `;
+        list.appendChild(li);
       });
-
-      document.getElementById("walletAddress").innerText =
-        "Connected: " + accounts[0];
-    } else {
-      alert("Install MetaMask");
     }
-  }
 
-  renderTasks();
+    function addTask() {
+      let input = document.getElementById("taskInput");
+      if (input.value === "") return;
 
-  // 🔥 LOADER HIDE
-  window.onload = () => {
-    document.getElementById("loader").style.display = "none";
-  };
-</script>
+      tasks.push(input.value);
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+
+      coins = parseInt(coins) + 10;
+      localStorage.setItem("coins", coins);
+      document.getElementById("coins").innerText = coins;
+
+      input.value = "";
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+
+      coins = parseInt(coins) - 5;
+      localStorage.setItem("coins", coins);
+      document.getElementById("coins").innerText = coins;
+
+      renderTasks();
+    }
+
+    renderTasks();
+  </script>
 
 </body>
 </html>
