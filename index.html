@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Web3 Task Dashboard</title>
+<title>Web3 Task Tracker</title>
 
 <style>
 body {
@@ -12,7 +12,6 @@ body {
   text-align: center;
 }
 
-/* GLASS CARD */
 .container {
   width: 90%;
   max-width: 500px;
@@ -20,7 +19,6 @@ body {
   padding: 20px;
   background: rgba(255,255,255,0.05);
   border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 h1 {
@@ -31,7 +29,6 @@ h1 {
   color: #38bdf8;
 }
 
-/* INPUT */
 input {
   padding: 10px;
   width: 70%;
@@ -39,17 +36,15 @@ input {
   border: none;
 }
 
-/* BUTTON */
 button {
   padding: 10px;
   margin: 5px;
   background: #38bdf8;
   border: none;
-  cursor: pointer;
   border-radius: 5px;
+  cursor: pointer;
 }
 
-/* TASK */
 li {
   margin: 10px 0;
   padding: 10px;
@@ -64,7 +59,6 @@ li {
   opacity: 0.6;
 }
 
-/* PROGRESS BAR */
 .progress {
   width: 100%;
   background: #1e293b;
@@ -92,10 +86,10 @@ li {
 
 <h1>
 <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="40">
-Web3 Dashboard
+Web3 Task Tracker
 </h1>
 
-<button onclick="connectWallet()">🦊 Connect</button>
+<button onclick="connectWallet()">🦊 Connect Wallet</button>
 <div id="wallet">Not connected</div>
 
 <h3>💰 Coins: <span id="coins">0</span></h3>
@@ -114,10 +108,21 @@ Web3 Dashboard
 
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-let coins = localStorage.getItem("coins") || 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+
+/* AUTO FIX OLD DATA */
+tasks = tasks.map(t => {
+  if (typeof t === "string") {
+    return { text: t, done: false };
+  }
+  return t;
+});
+
+localStorage.setItem("tasks", JSON.stringify(tasks));
 
 document.getElementById("coins").innerText = coins;
 
+/* RENDER */
 function renderTasks() {
   let list = document.getElementById("taskList");
   list.innerHTML = "";
@@ -125,7 +130,7 @@ function renderTasks() {
   let completed = 0;
 
   tasks.forEach((task, index) => {
-    if(task.done) completed++;
+    if (task.done) completed++;
 
     let li = document.createElement("li");
     li.innerHTML = `
@@ -140,11 +145,13 @@ function renderTasks() {
   updateProgress(completed);
 }
 
+/* PROGRESS */
 function updateProgress(done) {
   let percent = tasks.length ? (done / tasks.length) * 100 : 0;
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
+/* ADD */
 function addTask() {
   let input = document.getElementById("taskInput");
   if (!input.value) return;
@@ -152,29 +159,32 @@ function addTask() {
   tasks.push({ text: input.value, done: false });
   localStorage.setItem("tasks", JSON.stringify(tasks));
 
-  coins = parseInt(coins) + 10;
+  coins += 10;
   updateCoins();
 
   input.value = "";
   renderTasks();
 }
 
+/* DELETE */
 function deleteTask(index) {
   tasks.splice(index, 1);
   localStorage.setItem("tasks", JSON.stringify(tasks));
 
-  coins = parseInt(coins) - 5;
+  coins -= 5;
   updateCoins();
 
   renderTasks();
 }
 
+/* TOGGLE */
 function toggleTask(index) {
   tasks[index].done = !tasks[index].done;
   localStorage.setItem("tasks", JSON.stringify(tasks));
   renderTasks();
 }
 
+/* RESET */
 function resetAll() {
   tasks = [];
   coins = 0;
@@ -183,6 +193,7 @@ function resetAll() {
   renderTasks();
 }
 
+/* COINS */
 function updateCoins() {
   localStorage.setItem("coins", coins);
   document.getElementById("coins").innerText = coins;
@@ -192,11 +203,15 @@ function updateCoins() {
 async function connectWallet() {
   if (window.ethereum) {
     try {
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts"
+      });
+
       document.getElementById("wallet").innerText =
         "Connected: " +
         accounts[0].slice(0,6) + "..." +
         accounts[0].slice(-4);
+
     } catch {
       alert("Connection failed");
     }
