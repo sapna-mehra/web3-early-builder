@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Web3 Task Tracker</title>
+  <title>Web3 Task Tracker (Web3 Edition)</title>
 
   <style>
     body {
@@ -9,36 +9,28 @@
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
       text-align: center;
-      padding: 30px;
+      padding: 20px;
     }
 
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
+    h1 { margin-bottom: 10px; }
+
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
-    .logo {
-      font-size: 40px;
-    }
+    .addBtn { background: #22c55e; color: white; }
+    .editBtn { background: orange; }
+    .deleteBtn { background: red; color: white; }
+    .walletBtn { background: purple; color: white; }
 
     input {
       padding: 10px;
-      width: 220px;
+      width: 200px;
       border-radius: 5px;
       border: none;
-    }
-
-    button {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-left: 5px;
-    }
-
-    .addBtn {
-      background: #22c55e;
-      color: white;
     }
 
     ul {
@@ -55,26 +47,24 @@
       border-radius: 10px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
     }
 
-    .editBtn {
-      background: orange;
-      color: black;
-      margin-left: 5px;
-    }
-
-    .deleteBtn {
-      background: red;
-      color: white;
-      margin-left: 5px;
+    #walletAddress {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #94a3b8;
     }
   </style>
 </head>
 
 <body>
 
-  <h1><span class="logo">🚀</span> Web3 Task Tracker</h1>
+  <h1>🚀 Web3 Task Tracker</h1>
+
+  <button class="walletBtn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+  <p id="walletAddress">Not connected</p>
+
+  <br><br>
 
   <input id="taskInput" placeholder="Enter task..." />
   <button class="addBtn" onclick="addTask()">Add</button>
@@ -105,7 +95,6 @@
 
     function addTask() {
       let input = document.getElementById("taskInput");
-
       if (input.value.trim() === "") return;
 
       tasks.push(input.value.trim());
@@ -116,21 +105,27 @@
     }
 
     function editTask(index) {
-      let newTask = prompt("Edit your task:", tasks[index]);
+      let newTask = prompt("Edit task:", tasks[index]);
+      if (!newTask) return;
 
-      if (!newTask || newTask.trim() === "") return;
-
-      tasks[index] = newTask.trim();
+      tasks[index] = newTask;
       localStorage.setItem("tasks", JSON.stringify(tasks));
-
       renderTasks();
     }
 
     function deleteTask(index) {
       tasks.splice(index, 1);
       localStorage.setItem("tasks", JSON.stringify(tasks));
-
       renderTasks();
+    }
+
+    async function connectWallet() {
+      if (typeof window.ethereum !== "undefined") {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        document.getElementById("walletAddress").innerText = "Connected: " + accounts[0];
+      } else {
+        alert("MetaMask not installed!");
+      }
     }
 
     renderTasks();
