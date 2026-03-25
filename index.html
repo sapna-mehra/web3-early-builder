@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Web3 Task Tracker</title>
+<title>Web3 Pro Dashboard</title>
 
 <style>
 body {
@@ -24,7 +24,6 @@ body {
 h1 {
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 10px;
   color: #38bdf8;
 }
@@ -70,7 +69,6 @@ li {
   height: 10px;
   background: #38bdf8;
   width: 0%;
-  border-radius: 10px;
 }
 
 #wallet {
@@ -86,13 +84,14 @@ li {
 
 <h1>
 <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="40">
-Web3 Task Tracker
+Web3 Pro Dashboard
 </h1>
 
 <button onclick="connectWallet()">🦊 Connect Wallet</button>
 <div id="wallet">Not connected</div>
 
 <h3>💰 Coins: <span id="coins">0</span></h3>
+<h3>🏆 Level: <span id="level">Beginner</span></h3>
 
 <div class="progress">
   <div class="progress-bar" id="progressBar"></div>
@@ -104,25 +103,26 @@ Web3 Task Tracker
 
 <ul id="taskList"></ul>
 
+<button onclick="claimReward()">🎁 Claim Reward</button>
+
 </div>
 
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 
-/* AUTO FIX OLD DATA */
-tasks = tasks.map(t => {
-  if (typeof t === "string") {
-    return { text: t, done: false };
-  }
-  return t;
-});
-
-localStorage.setItem("tasks", JSON.stringify(tasks));
+/* FIX OLD DATA */
+tasks = tasks.map(t => typeof t === "string" ? {text:t, done:false} : t);
 
 document.getElementById("coins").innerText = coins;
 
-/* RENDER */
+function updateLevel() {
+  let level = "Beginner";
+  if (coins >= 50) level = "Pro";
+  if (coins >= 100) level = "Legend 🔥";
+  document.getElementById("level").innerText = level;
+}
+
 function renderTasks() {
   let list = document.getElementById("taskList");
   list.innerHTML = "";
@@ -143,15 +143,14 @@ function renderTasks() {
   });
 
   updateProgress(completed);
+  updateLevel();
 }
 
-/* PROGRESS */
 function updateProgress(done) {
   let percent = tasks.length ? (done / tasks.length) * 100 : 0;
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
-/* ADD */
 function addTask() {
   let input = document.getElementById("taskInput");
   if (!input.value) return;
@@ -166,7 +165,6 @@ function addTask() {
   renderTasks();
 }
 
-/* DELETE */
 function deleteTask(index) {
   tasks.splice(index, 1);
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -177,14 +175,12 @@ function deleteTask(index) {
   renderTasks();
 }
 
-/* TOGGLE */
 function toggleTask(index) {
   tasks[index].done = !tasks[index].done;
   localStorage.setItem("tasks", JSON.stringify(tasks));
   renderTasks();
 }
 
-/* RESET */
 function resetAll() {
   tasks = [];
   coins = 0;
@@ -193,25 +189,31 @@ function resetAll() {
   renderTasks();
 }
 
-/* COINS */
 function updateCoins() {
   localStorage.setItem("coins", coins);
   document.getElementById("coins").innerText = coins;
+  updateLevel();
+}
+
+function claimReward() {
+  if (coins >= 50) {
+    alert("🎉 Reward Claimed!");
+    coins -= 50;
+    updateCoins();
+  } else {
+    alert("❌ Need 50 coins");
+  }
 }
 
 /* METAMASK */
 async function connectWallet() {
   if (window.ethereum) {
     try {
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts"
-      });
-
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
       document.getElementById("wallet").innerText =
         "Connected: " +
         accounts[0].slice(0,6) + "..." +
         accounts[0].slice(-4);
-
     } catch {
       alert("Connection failed");
     }
@@ -221,6 +223,7 @@ async function connectWallet() {
 }
 
 renderTasks();
+updateLevel();
 </script>
 
 </body>
