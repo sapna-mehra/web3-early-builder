@@ -1,108 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Web3 Task Tracker</title>
+<meta charset="UTF-8">
+<title>Web3 Task Dashboard</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #020617;
-      color: white;
-      text-align: center;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg,#020617,#0f172a);
+  color: white;
+  text-align: center;
+}
 
-    h1 {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      color: #38bdf8;
-      text-shadow: 0 0 10px #38bdf8;
-    }
+/* GLASS CARD */
+.container {
+  width: 90%;
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
 
-    input {
-      padding: 10px;
-      width: 60%;
-    }
+h1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #38bdf8;
+}
 
-    button {
-      padding: 10px;
-      background: #38bdf8;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 0 10px #38bdf8;
-    }
+/* INPUT */
+input {
+  padding: 10px;
+  width: 70%;
+  border-radius: 5px;
+  border: none;
+}
 
-    li {
-      margin: 10px;
-      list-style: none;
-    }
-  </style>
+/* BUTTON */
+button {
+  padding: 10px;
+  margin: 5px;
+  background: #38bdf8;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* TASK */
+li {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* PROGRESS BAR */
+.progress {
+  width: 100%;
+  background: #1e293b;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #38bdf8;
+  width: 0%;
+  border-radius: 10px;
+}
+
+#wallet {
+  font-size: 14px;
+  color: #94a3b8;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>
-    <img src="logo.png" width="40">
-    Web3 Task Tracker
-  </h1>
+<div class="container">
 
-  <h3>💰 Coins: <span id="coins">0</span></h3>
+<h1>
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="40">
+Web3 Dashboard
+</h1>
 
-  <input type="text" id="taskInput" placeholder="Enter task">
-  <button onclick="addTask()">Add</button>
+<button onclick="connectWallet()">🦊 Connect</button>
+<div id="wallet">Not connected</div>
 
-  <ul id="taskList"></ul>
+<h3>💰 Coins: <span id="coins">0</span></h3>
 
-  <script>
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    let coins = localStorage.getItem("coins") || 0;
+<div class="progress">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
 
-    document.getElementById("coins").innerText = coins;
+<input type="text" id="taskInput" placeholder="Enter task">
+<button onclick="addTask()">Add</button>
+<button onclick="resetAll()">Reset</button>
 
-    function renderTasks() {
-      let list = document.getElementById("taskList");
-      list.innerHTML = "";
+<ul id="taskList"></ul>
 
-      tasks.forEach((task, index) => {
-        let li = document.createElement("li");
-        li.innerHTML = `
-          ${task}
-          <button onclick="deleteTask(${index})">❌</button>
-        `;
-        list.appendChild(li);
-      });
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let coins = localStorage.getItem("coins") || 0;
+
+document.getElementById("coins").innerText = coins;
+
+function renderTasks() {
+  let list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  let completed = 0;
+
+  tasks.forEach((task, index) => {
+    if(task.done) completed++;
+
+    let li = document.createElement("li");
+    li.innerHTML = `
+      <span onclick="toggleTask(${index})" class="${task.done ? 'done' : ''}">
+        ${task.text}
+      </span>
+      <button onclick="deleteTask(${index})">❌</button>
+    `;
+    list.appendChild(li);
+  });
+
+  updateProgress(completed);
+}
+
+function updateProgress(done) {
+  let percent = tasks.length ? (done / tasks.length) * 100 : 0;
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function addTask() {
+  let input = document.getElementById("taskInput");
+  if (!input.value) return;
+
+  tasks.push({ text: input.value, done: false });
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+
+  coins = parseInt(coins) + 10;
+  updateCoins();
+
+  input.value = "";
+  renderTasks();
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+
+  coins = parseInt(coins) - 5;
+  updateCoins();
+
+  renderTasks();
+}
+
+function toggleTask(index) {
+  tasks[index].done = !tasks[index].done;
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+  renderTasks();
+}
+
+function resetAll() {
+  tasks = [];
+  coins = 0;
+  localStorage.clear();
+  updateCoins();
+  renderTasks();
+}
+
+function updateCoins() {
+  localStorage.setItem("coins", coins);
+  document.getElementById("coins").innerText = coins;
+}
+
+/* METAMASK */
+async function connectWallet() {
+  if (window.ethereum) {
+    try {
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      document.getElementById("wallet").innerText =
+        "Connected: " +
+        accounts[0].slice(0,6) + "..." +
+        accounts[0].slice(-4);
+    } catch {
+      alert("Connection failed");
     }
+  } else {
+    alert("Install MetaMask");
+  }
+}
 
-    function addTask() {
-      let input = document.getElementById("taskInput");
-      if (input.value === "") return;
-
-      tasks.push(input.value);
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-
-      coins = parseInt(coins) + 10;
-      localStorage.setItem("coins", coins);
-      document.getElementById("coins").innerText = coins;
-
-      input.value = "";
-      renderTasks();
-    }
-
-    function deleteTask(index) {
-      tasks.splice(index, 1);
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-
-      coins = parseInt(coins) - 5;
-      localStorage.setItem("coins", coins);
-      document.getElementById("coins").innerText = coins;
-
-      renderTasks();
-    }
-
-    renderTasks();
-  </script>
+renderTasks();
+</script>
 
 </body>
 </html>
