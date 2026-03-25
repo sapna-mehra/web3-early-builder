@@ -2,18 +2,28 @@
 <html>
 <head>
   <title>Web3 Task Tracker</title>
+
   <style>
     body {
       font-family: Arial;
-      background: #0f172a;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
       text-align: center;
-      padding: 20px;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 40px;
     }
 
     input {
       padding: 10px;
-      width: 200px;
+      width: 220px;
       border-radius: 5px;
       border: none;
     }
@@ -26,14 +36,21 @@
       margin-left: 5px;
     }
 
+    .addBtn {
+      background: #22c55e;
+      color: white;
+    }
+
     ul {
       list-style: none;
       padding: 0;
+      margin-top: 20px;
     }
 
     li {
-      margin: 10px;
-      padding: 10px;
+      margin: 10px auto;
+      padding: 12px;
+      width: 300px;
       background: rgba(255,255,255,0.1);
       border-radius: 10px;
       display: flex;
@@ -44,16 +61,23 @@
     .editBtn {
       background: orange;
       color: black;
+      margin-left: 5px;
+    }
+
+    .deleteBtn {
+      background: red;
+      color: white;
+      margin-left: 5px;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>🚀 Web3 Task Tracker</h1>
+  <h1><span class="logo">🚀</span> Web3 Task Tracker</h1>
 
   <input id="taskInput" placeholder="Enter task..." />
-  <button onclick="addTask()">Add</button>
+  <button class="addBtn" onclick="addTask()">Add</button>
 
   <ul id="taskList"></ul>
 
@@ -69,8 +93,11 @@
 
         li.innerHTML = `
           <span>${task}</span>
-          
-         ;`
+          <div>
+            <button class="editBtn" onclick="editTask(${index})">Edit</button>
+            <button class="deleteBtn" onclick="deleteTask(${index})">Delete</button>
+          </div>
+        `;
 
         list.appendChild(li);
       });
@@ -94,6 +121,13 @@
       if (!newTask || newTask.trim() === "") return;
 
       tasks[index] = newTask.trim();
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
       localStorage.setItem("tasks", JSON.stringify(tasks));
 
       renderTasks();
