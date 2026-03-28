@@ -1,229 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Web3 Pro Dashboard</title>
+  <title>Shelby Data Stream Dashboard</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #00ffcc;
+      font-family: monospace;
+      padding: 20px;
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background: linear-gradient(135deg,#020617,#0f172a);
-  color: white;
-  text-align: center;
-}
+    h1 {
+      text-align: center;
+      color: #00ffaa;
+    }
 
-.container {
-  width: 90%;
-  max-width: 500px;
-  margin: auto;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 15px;
-}
+    .box {
+      border: 1px solid #00ffaa33;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      background: #111;
+    }
 
-h1 {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  color: #38bdf8;
-}
+    button {
+      background: #00ffaa;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
 
-input {
-  padding: 10px;
-  width: 70%;
-  border-radius: 5px;
-  border: none;
-}
+    .log {
+      margin-top: 20px;
+      background: black;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      border-radius: 5px;
+      font-size: 13px;
+    }
 
-button {
-  padding: 10px;
-  margin: 5px;
-  background: #38bdf8;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    .progress {
+      margin-top: 10px;
+      height: 8px;
+      background: #222;
+      border-radius: 5px;
+    }
 
-li {
-  margin: 10px 0;
-  padding: 10px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.done {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
-
-.progress {
-  width: 100%;
-  background: #1e293b;
-  border-radius: 10px;
-  margin: 10px 0;
-}
-
-.progress-bar {
-  height: 10px;
-  background: #38bdf8;
-  width: 0%;
-}
-
-#wallet {
-  font-size: 14px;
-  color: #94a3b8;
-}
-</style>
+    .bar {
+      height: 8px;
+      width: 0%;
+      background: #00ffaa;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="container">
+<h1>🚀 Shelby Data Stream</h1>
 
-<h1>
-<img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="40">
-Web3 Pro Dashboard
-</h1>
+<div class="box">
+  <input type="file" />
+  <br><br>
+  <button onclick="start()">Start Streaming</button>
 
-<button onclick="connectWallet()">🦊 Connect Wallet</button>
-<div id="wallet">Not connected</div>
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
 
-<h3>💰 Coins: <span id="coins">0</span></h3>
-<h3>🏆 Level: <span id="level">Beginner</span></h3>
-
-<div class="progress">
-  <div class="progress-bar" id="progressBar"></div>
-</div>
-
-<input type="text" id="taskInput" placeholder="Enter task">
-<button onclick="addTask()">Add</button>
-<button onclick="resetAll()">Reset</button>
-
-<ul id="taskList"></ul>
-
-<button onclick="claimReward()">🎁 Claim Reward</button>
-
+  <div class="log" id="log"></div>
 </div>
 
 <script>
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-
-/* FIX OLD DATA */
-tasks = tasks.map(t => typeof t === "string" ? {text:t, done:false} : t);
-
-document.getElementById("coins").innerText = coins;
-
-function updateLevel() {
-  let level = "Beginner";
-  if (coins >= 50) level = "Pro";
-  if (coins >= 100) level = "Legend 🔥";
-  document.getElementById("level").innerText = level;
+function log(msg) {
+  let logBox = document.getElementById("log");
+  logBox.innerHTML += msg + "<br>";
+  logBox.scrollTop = logBox.scrollHeight;
 }
 
-function renderTasks() {
-  let list = document.getElementById("taskList");
-  list.innerHTML = "";
+function start() {
+  let bar = document.getElementById("bar");
+  let progress = 0;
 
-  let completed = 0;
+  log("Initializing Shelby stream...");
+  
+  let steps = [
+    "Encoding data into chunks...",
+    "Applying erasure coding...",
+    "Connecting to Shelby RPC...",
+    "Uploading chunks...",
+    "Verifying data integrity...",
+    "Stream complete ✅"
+  ];
 
-  tasks.forEach((task, index) => {
-    if (task.done) completed++;
+  let i = 0;
 
-    let li = document.createElement("li");
-    li.innerHTML = `
-      <span onclick="toggleTask(${index})" class="${task.done ? 'done' : ''}">
-        ${task.text}
-      </span>
-      <button onclick="deleteTask(${index})">❌</button>
-    `;
-    list.appendChild(li);
-  });
-
-  updateProgress(completed);
-  updateLevel();
-}
-
-function updateProgress(done) {
-  let percent = tasks.length ? (done / tasks.length) * 100 : 0;
-  document.getElementById("progressBar").style.width = percent + "%";
-}
-
-function addTask() {
-  let input = document.getElementById("taskInput");
-  if (!input.value) return;
-
-  tasks.push({ text: input.value, done: false });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-
-  coins += 10;
-  updateCoins();
-
-  input.value = "";
-  renderTasks();
-}
-
-function deleteTask(index) {
-  tasks.splice(index, 1);
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-
-  coins -= 5;
-  updateCoins();
-
-  renderTasks();
-}
-
-function toggleTask(index) {
-  tasks[index].done = !tasks[index].done;
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-  renderTasks();
-}
-
-function resetAll() {
-  tasks = [];
-  coins = 0;
-  localStorage.clear();
-  updateCoins();
-  renderTasks();
-}
-
-function updateCoins() {
-  localStorage.setItem("coins", coins);
-  document.getElementById("coins").innerText = coins;
-  updateLevel();
-}
-
-function claimReward() {
-  if (coins >= 50) {
-    alert("🎉 Reward Claimed!");
-    coins -= 50;
-    updateCoins();
-  } else {
-    alert("❌ Need 50 coins");
-  }
-}
-
-/* METAMASK */
-async function connectWallet() {
-  if (window.ethereum) {
-    try {
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-      document.getElementById("wallet").innerText =
-        "Connected: " +
-        accounts[0].slice(0,6) + "..." +
-        accounts[0].slice(-4);
-    } catch {
-      alert("Connection failed");
+  let interval = setInterval(() => {
+    if (progress >= 100) {
+      clearInterval(interval);
+      return;
     }
-  } else {
-    alert("Install MetaMask");
-  }
-}
 
-renderTasks();
-updateLevel();
+    progress += 5;
+    bar.style.width = progress + "%";
+
+    if (progress % 20 === 0 && i < steps.length) {
+      log(">> " + steps[i]);
+      i++;
+    }
+
+  }, 200);
+}
 </script>
 
 </body>
