@@ -8,10 +8,10 @@
       color: #00ffcc;
       font-family: monospace;
       padding: 20px;
+      text-align: center;
     }
 
     h1 {
-      text-align: center;
       color: #00ffaa;
     }
 
@@ -41,6 +41,7 @@
       overflow-y: auto;
       border-radius: 5px;
       font-size: 13px;
+      text-align: left;
     }
 
     .progress {
@@ -55,6 +56,12 @@
       width: 0%;
       background: #00ffaa;
     }
+
+    #fileInfo {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
@@ -62,8 +69,9 @@
 <h1>🚀 Shelby Data Stream</h1>
 
 <div class="box">
-  <input type="file" />
-  <br><br>
+  <input type="file" id="fileInput"/>
+  <p id="fileInfo"></p>
+  <br>
   <button onclick="start()">Start Streaming</button>
 
   <div class="progress">
@@ -74,6 +82,16 @@
 </div>
 
 <script>
+const fileInput = document.getElementById("fileInput");
+
+fileInput.addEventListener("change", () => {
+  let file = fileInput.files[0];
+  if (file) {
+    document.getElementById("fileInfo").innerText =
+      "File: " + file.name + " (" + (file.size / 1024 / 1024).toFixed(2) + " MB)";
+  }
+});
+
 function log(msg) {
   let logBox = document.getElementById("log");
   logBox.innerHTML += msg + "<br>";
@@ -84,8 +102,10 @@ function start() {
   let bar = document.getElementById("bar");
   let progress = 0;
 
+  document.getElementById("log").innerHTML = "";
   log("Initializing Shelby stream...");
-  
+  log(">> Speed: 10 Gbps ⚡");
+
   let steps = [
     "Encoding data into chunks...",
     "Applying erasure coding...",
@@ -100,6 +120,7 @@ function start() {
   let interval = setInterval(() => {
     if (progress >= 100) {
       clearInterval(interval);
+      alert("✅ Data successfully streamed via Shelby!");
       return;
     }
 
